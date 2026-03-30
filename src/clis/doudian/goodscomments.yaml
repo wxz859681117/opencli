@@ -1,0 +1,49 @@
+site: doudian
+name: goodscomments
+description: 获取货品评论
+domain: douhuo.jinritemai.com
+strategy: cookie
+browser: true
+args:
+  productId:
+    type: str
+    required: true
+    description: 商品ID
+  pageNo:
+    type: int
+    default: 1
+    description: 页码
+  pageSize:
+    type: int
+    default: 10
+    description: 每页数量
+  commentLevel:
+    type: str
+    default: "1,2,3"
+    description: 评价等级(1=好评 2=中评 3=差评),多个用逗号分隔
+  needSummery:
+    type: bool
+    default: true
+    description: 是否需要汇总
+pipeline:
+  - navigate: https://douhuo.jinritemai.com
+  - evaluate: |
+      (async () => {
+        const commentLevelStr = String(${{ args.commentLevel | json }});
+        const body = {
+          "productId": String(${{ args.productId | json }}),
+          "commentLevel": commentLevelStr.split(",").map(s => parseInt(s.trim())),
+          "needSummery": Boolean(${{ args.needSummery | json }}),
+          "pageNo": Number(${{ args.pageNo | json }}),
+          "pageSize": Number(${{ args.pageSize | json }})
+        };
+        const resp = await fetch("https://douhuo.jinritemai.com/api/dp/fxProduct/productComment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          credentials: "include"
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw

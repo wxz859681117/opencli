@@ -1,0 +1,29 @@
+site: doudian
+name: goodsdetail
+description: 查询货品详情
+domain: douhuo.jinritemai.com
+strategy: cookie
+browser: true
+args:
+  spuId:
+    type: str
+    required: true
+    description: 商品SPU ID
+pipeline:
+  - navigate: https://fxg.jinritemai.com/
+  - evaluate: |
+      (async () => {
+        const resp = await fetch(`https://douhuo.jinritemai.com/api/dp/fxProduct/querySpuDetailForDistributor?spuId=${String(${{ args.spuId | json }})}&needSortSku=true`, {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "accept": "application/json, text/plain, */*",
+            "origin": "https://fxg.jinritemai.com",
+            "referer": "https://fxg.jinritemai.com/",
+            "sec-fetch-site": "same-site"
+          }
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw

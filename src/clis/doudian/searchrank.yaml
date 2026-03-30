@@ -1,0 +1,80 @@
+site: doudian
+name: searchrank
+description: 行业搜索排行
+domain: compass.jinritemai.com
+strategy: cookie
+browser: true
+args:
+  pageNo:
+    type: int
+    default: 1
+    description: 页码
+  pageSize:
+    type: int
+    default: 5
+    description: 每页数量
+  dateType:
+    type: int
+    default: 21
+    description: 日期类型(21=自定义)
+  beginDate:
+    type: str
+    default: ""
+    description: 开始日期(YYYY/MM/DD HH:mm:ss, 默认上周)
+  endDate:
+    type: str
+    default: ""
+    description: 结束日期(YYYY/MM/DD HH:mm:ss, 默认上周)
+  industryId:
+    type: int
+    default: 8
+    description: 行业ID(8=生鲜)
+  cateId:
+    type: str
+    required: true
+    description: 类目ID(如水果=20188)
+  isActivity:
+    type: bool
+    default: false
+    description: 是否活动
+pipeline:
+  - navigate: https://compass.jinritemai.com
+  - evaluate: |
+      (async () => {
+        const now = new Date();
+        const lastWeekEnd = new Date(now);
+        lastWeekEnd.setDate(now.getDate() - now.getDay() - 1);
+        const lastWeekStart = new Date(lastWeekEnd);
+        lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+
+        const formatDate = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return y + '/' + m + '/' + day + ' 00:00:00';
+        };
+
+        const argBeginDate = String(${{ args.beginDate | default("") }});
+        const argEndDate = String(${{ args.endDate | default("") }});
+        const beginDate = argBeginDate.length > 0 ? argBeginDate : formatDate(lastWeekStart);
+        const endDate = argEndDate.length > 0 ? argEndDate : formatDate(lastWeekEnd);
+
+        const params = new URLSearchParams({
+          page_no: String(${{ args.pageNo | default(1) }}),
+          page_size: String(${{ args.pageSize | default(5) }}),
+          date_type: String(${{ args.dateType | default(21) }}),
+          begin_date: beginDate,
+          end_date: endDate,
+          industry_id: String(${{ args.industryId | default(8) }}),
+          cate_id: String(${{ args.cateId }}),
+          is_activity: String(${{ args.isActivity | default(false) }})
+        });
+
+        const resp = await fetch('https://compass.jinritemai.com/compass_api/shop/common/homepage/search_industry_rank?' + params.toString(), {
+          method: 'GET',
+          credentials: 'include'
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw

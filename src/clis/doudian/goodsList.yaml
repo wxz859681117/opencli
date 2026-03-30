@@ -1,5 +1,5 @@
 site: doudian
-name: goodsList
+name: goodslist
 description: 获取源头好货列表
 domain: douhuo.jinritemai.com
 strategy: cookie

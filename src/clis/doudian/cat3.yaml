@@ -1,0 +1,18 @@
+site: doudian
+name: cat3
+description: 获取全部3级类目
+domain: douhuo.jinritemai.com
+strategy: cookie
+browser: true
+pipeline:
+  - navigate: https://douhuo.jinritemai.com
+  - evaluate: |
+      (async () => {
+        const resp = await fetch("https://douhuo.jinritemai.com/api/dp/category/allCategory", {
+          method: "GET",
+          credentials: "include"
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw

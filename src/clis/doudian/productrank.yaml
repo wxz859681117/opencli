@@ -1,0 +1,141 @@
+site: doudian
+name: productrank
+description: 商品榜单
+domain: compass.jinritemai.com
+strategy: cookie
+browser: true
+args:
+  rankType:
+    type: str
+    default: "hotsale"
+    description: 榜单类型(hotsale热销/live直播/search搜索/card卡券/video短视频/realtime实时/author达人)
+  pageNo:
+    type: int
+    default: 1
+    description: 页码
+  pageSize:
+    type: int
+    default: 20
+    description: 每页数量
+  dateType:
+    type: int
+    default: 21
+    description: 日期类型(21=自定义)
+  beginDate:
+    type: str
+    default: ""
+    description: 开始日期(YYYY/MM/DD HH:mm:ss, 默认上周)
+  endDate:
+    type: str
+    default: ""
+    description: 结束日期(YYYY/MM/DD HH:mm:ss, 默认上周)
+  industryId:
+    type: int
+    default: 8
+    description: 行业ID(8=生鲜)
+  categoryId:
+    type: str
+    default: "38944"
+    description: 类目ID(如水果=38944,20188)
+  brandType:
+    type: int
+    default: -1
+    description: 品牌类型(-1=不限 0=无品牌 1=有品牌)
+  priceBin:
+    type: str
+    default: "不限"
+    description: 价格区间
+  activityId:
+    type: str
+    default: ""
+    description: 活动ID
+  searchType:
+    type: int
+    default: 2
+    description: 搜索类型(仅hotsale)
+  liveType:
+    type: int
+    default: 0
+    description: 直播类型(仅hotsale/live)
+pipeline:
+  - navigate: https://compass.jinritemai.com
+  - evaluate: |
+      (async () => {
+        const now = new Date();
+        const lastWeekEnd = new Date(now);
+        lastWeekEnd.setDate(now.getDate() - now.getDay() - 1);
+        const lastWeekStart = new Date(lastWeekEnd);
+        lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+
+        const formatDate = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return y + '/' + m + '/' + day + ' 00:00:00';
+        };
+
+        const argBeginDate = String(${{ args.beginDate | json }});
+        const argEndDate = String(${{ args.endDate | json }});
+        const beginDate = argBeginDate.length > 0 ? argBeginDate : formatDate(lastWeekStart);
+        const endDate = argEndDate.length > 0 ? argEndDate : formatDate(lastWeekEnd);
+        const rankType = String(${{ args.rankType | json }});
+
+        const apiPaths = {
+          hotsale: 'product/product_rank/market_hot_sale',
+          live: 'product/product_rank/live_product',
+          search: 'mall/product_rank/search',
+          card: 'mall/product_rank/product_card_hot_v2',
+          video: 'product/product_rank/video_bring_good',
+          realtime: 'product/product_rank/realtime_hot_dig',
+          author: 'product/product_rank/author_bring_good'
+        };
+
+        const defaultRankType = 'hotsale';
+        const apiPath = apiPaths[rankType] || apiPaths[defaultRankType];
+
+        const baseParams = {
+          page_no: String(${{ args.pageNo | json }}),
+          page_size: String(${{ args.pageSize | json }}),
+          date_type: String(${{ args.dateType | json }}),
+          begin_date: beginDate,
+          end_date: endDate,
+          industry_id: String(${{ args.industryId | json }}),
+          category_id: String(${{ args.categoryId | json }}),
+          brand_type: String(${{ args.brandType | json }}),
+          price_bin: encodeURIComponent(String(${{ args.priceBin | json }})),
+          activity_id: '',
+          search_info: ''
+        };
+
+        if (rankType === 'hotsale') {
+          baseParams.search_type = String(${{ args.searchType | json }});
+          baseParams.live_type = String(${{ args.liveType | json }});
+        }
+        if (rankType === 'live') {
+          baseParams.search_type = '2';
+          baseParams.live_type = String(${{ args.liveType | json }});
+          baseParams.rank_data_type = '1';
+        }
+        if (rankType === 'video') {
+          baseParams.rank_data_type = '1';
+        }
+        if (rankType === 'card') {
+          baseParams.sort_field = 'pay_amt';
+          baseParams.is_asc = 'false';
+          baseParams.rank_data_type = '1';
+          baseParams.top_myshop = 'false';
+        }
+        if (rankType === 'author') {
+          baseParams.rank_data_type = '1';
+        }
+
+        const params = new URLSearchParams(baseParams);
+
+        const resp = await fetch('https://compass.jinritemai.com/compass_api/shop/' + apiPath + '?' + params.toString(), {
+          method: 'GET',
+          credentials: 'include'
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw

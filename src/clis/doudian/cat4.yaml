@@ -1,0 +1,18 @@
+site: doudian
+name: cat4
+description: 获取全部4级类目
+domain: compass.jinritemai.com
+strategy: cookie
+browser: true
+pipeline:
+  - navigate: https://compass.jinritemai.com
+  - evaluate: |
+      (async () => {
+        const resp = await fetch("https://compass.jinritemai.com/compass_api/config_center/category/cate_list?scene=9&level=4", {
+          method: "GET",
+          credentials: "include"
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw

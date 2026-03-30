@@ -1,0 +1,86 @@
+site: doudian
+name: salesdata
+description: 商品销售数据
+domain: compass.jinritemai.com
+strategy: cookie
+browser: true
+args:
+  productId:
+    type: str
+    required: true
+    description: 商品ID
+  dateType:
+    type: int
+    default: 21
+    description: 日期类型(21=自定义)
+  beginDate:
+    type: str
+    default: ""
+    description: 开始日期(YYYY/MM/DD HH:mm:ss, 默认上周)
+  endDate:
+    type: str
+    default: ""
+    description: 结束日期(YYYY/MM/DD HH:mm:ss, 默认昨天)
+  userType:
+    type: int
+    default: 0
+    description: 用户类型(0=全部)
+  saleType:
+    type: int
+    default: 0
+    description: 支付方式(0=全部)
+  contentType:
+    type: int
+    default: 0
+    description: 内容类型(0=全部)
+  terminalType:
+    type: int
+    default: 0
+    description: 终端类型(0=全部)
+pipeline:
+  - navigate: https://compass.jinritemai.com/shop/product-detail
+  - evaluate: |
+      (async () => {
+        const now = new Date();
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        const lastWeekEnd = new Date(now);
+        lastWeekEnd.setDate(now.getDate() - now.getDay() - 1);
+        const lastWeekStart = new Date(lastWeekEnd);
+        lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+
+        const formatDate = (d) => {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return y + '/' + m + '/' + day + ' 00:00:00';
+        };
+
+        const argBeginDate = String(${{ args.beginDate | json }});
+        const argEndDate = String(${{ args.endDate | json }});
+        const beginDate = argBeginDate.length > 0 ? argBeginDate : formatDate(lastWeekStart);
+        const endDate = argEndDate.length > 0 ? argEndDate : formatDate(yesterday);
+
+        const productId = String(${{ args.productId | json }});
+
+        const params = new URLSearchParams({
+          date_type: String(${{ args.dateType | json }}),
+          begin_date: beginDate,
+          end_date: endDate,
+          activity_id: '',
+          product_id: productId,
+          user_type: String(${{ args.userType | json }}),
+          sale_type: String(${{ args.saleType | json }}),
+          content_type: String(${{ args.contentType | json }}),
+          terminal_type: String(${{ args.terminalType | json }}),
+          index_selected: 'trans_amt,pay_amt,pay_cnt,qc_ad_cost,refund_sucess_amt,dh_product_show_uv,dh_product_click_uv,pay_ucnt,click_add_to_cart_uv,prod_wish_uv'
+        });
+
+        const resp = await fetch('https://compass.jinritemai.com/compass_api/shop/product/product_detail/core_data/index_data?' + params.toString(), {
+          method: 'GET',
+          credentials: 'include'
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw
