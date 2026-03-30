@@ -1,0 +1,87 @@
+site: doudian
+name: goodsList
+description: 获取源头好货列表
+domain: douhuo.jinritemai.com
+strategy: cookie
+browser: true
+args:
+  page:
+    type: int
+    default: 1
+    description: 页码
+  pageSize:
+    type: int
+    default: 10
+    description: 每页数量
+  supplyPriceMin:
+    type: number
+    default: 1
+    description: 供货价最小值(元)
+  supplyPriceMax:
+    type: number
+    default: 100
+    description: 供货价最大值(元)
+  firstCids:
+    type: str
+    default: "38944"
+    description: 一级类目ID,多个用逗号分隔
+  salesInfoCountMin:
+    type: int
+    default: 1
+    description: 近30天销量最小值
+  salesInfoCountMax:
+    type: int
+    default: 1000000
+    description: 近30天销量最大值
+  goodCommentRatioMin:
+    type: number
+    default: 0
+    description: 好评率最小值(0-1)
+  deliverRatio48hMin:
+    type: number
+    default: 0
+    description: 48H发货率最小值(0-1)
+  freightType:
+    type: int
+    default: 0
+    description: 运费类型(0-全部 1-包邮 2-不支持包邮)
+  supply7DayReturn:
+    type: int
+    default: 0
+    description: 是否支持7天无理由退货(0-不限 1-支持)
+  itemReturnRateMax:
+    type: number
+    default: 1
+    description: 商品退货率上限(0-1)
+pipeline:
+  - navigate: https://douhuo.jinritemai.com
+  - evaluate: |
+      (async () => {
+        const firstCidsStr = String(${{ args.firstCids | default("38944") }});
+        const body = {
+          "isFilter": 0,
+          "isProdFilter": 0,
+          "supplyPriceMin": ${{ args.supplyPriceMin | default(1) }},
+          "supplyPriceMax": ${{ args.supplyPriceMax | default(10000) }},
+          "firstCids": firstCidsStr.split(",").map(s => s.trim()),
+          "salesInfoCountMin": ${{ args.salesInfoCountMin | default(1) }},
+          "salesInfoCountMax": ${{ args.salesInfoCountMax | default(1000000) }},
+          "goodCommentRatioMin": ${{ args.goodCommentRatioMin | default(0) }},
+          "deliverRatio48hMin": ${{ args.deliverRatio48hMin | default(0) }},
+          "freightType": ${{ args.freightType | default(0) }},
+          "supply7DayReturn": ${{ args.supply7DayReturn | default(0) }},
+          "itemReturnRateMax": ${{ args.itemReturnRateMax | default(1) }},
+          "page": ${{ args.page | default(1) }},
+          "pageSize": ${{ args.pageSize | default(10) }},
+          "visitPage": ${{ args.page | default(1) }}
+        };
+        const resp = await fetch("https://douhuo.jinritemai.com/api/dp/fxProduct/recommendAndSearchSpuForDistributor", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+          credentials: "include"
+        });
+        return await resp.json();
+      })()
+columns:
+  - raw
