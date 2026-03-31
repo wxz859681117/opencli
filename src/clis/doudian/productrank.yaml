@@ -110,6 +110,7 @@ pipeline:
         if (rankType === 'hotsale') {
           baseParams.search_type = String(${{ args.searchType | json }});
           baseParams.live_type = String(${{ args.liveType | json }});
+          baseParams.rank_data_type = '1';
         }
         if (rankType === 'live') {
           baseParams.search_type = '2';
