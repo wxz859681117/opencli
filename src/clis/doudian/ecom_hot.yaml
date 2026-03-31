@@ -24,7 +24,7 @@ args:
   dateType:
     type: int
     default: 21
-    description: 日期类型(21=自定义)
+    description: 日期类型(1=实时，20=近1天，21=近7天，23=近30天)
   beginDate:
     type: str
     default: ""

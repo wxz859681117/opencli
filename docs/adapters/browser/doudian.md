@@ -152,7 +152,7 @@ opencli doudian goodslist --supply7DayReturn 1
 | `--rankType` | hotsale | 榜单类型: hotsale(热销)/live(直播)/search(搜索)/card(卡券)/video(短视频)/realtime(实时)/author(达人) |
 | `--pageNo` | 1 | 页码 |
 | `--pageSize` | 20 | 每页数量 |
-| `--dateType` | 21 | 日期类型(21=自定义) |
+| `--dateType` | 21 | 日期类型(1=实时，20=近1天，21=近7天，23=近30天) |
 | `--beginDate` | 上周 | 开始日期(YYYY/MM/DD HH:mm:ss) |
 | `--endDate` | 上周 | 结束日期(YYYY/MM/DD HH:mm:ss) |
 | `--industryId` | 8 | 行业ID(8=生鲜) |
@@ -187,7 +187,7 @@ opencli doudian goodslist --supply7DayReturn 1
 | `--pageSize` | 10 | 每页数量 |
 | `--rankType` | 1 | 排行榜类型(1=热度高 2=增速快 3=竞争小 100=看后搜热词) |
 | `--searchIntent` | 0 | 搜索意图(0=全部 1=搜商品 2=搜内容 3=搜用户) |
-| `--dateType` | 21 | 日期类型(21=自定义) |
+| `--dateType` | 21 | 日期类型(1=实时，20=近1天，21=近7天，23=近30天) |
 | `--beginDate` | 上周 | 开始日期 |
 | `--endDate` | 上周 | 结束日期 |
 | `--industryId` | 8 | 行业ID(8=生鲜) |
@@ -226,7 +226,7 @@ opencli doudian goodslist --supply7DayReturn 1
 |-----------|---------|-------------|
 | `--pageNo` | 1 | 页码 |
 | `--pageSize` | 5 | 每页数量 |
-| `--dateType` | 21 | 日期类型(21=自定义) |
+| `--dateType` | 21 | 日期类型(1=实时，20=近1天，21=近7天，23=近30天) |
 | `--beginDate` | 上周 | 开始日期 |
 | `--endDate` | 上周 | 结束日期 |
 | `--industryId` | 8 | 行业ID(8=生鲜) |
@@ -237,7 +237,7 @@ opencli doudian goodslist --supply7DayReturn 1
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `--dateType` | 21 | 日期类型(21=自定义) |
+| `--dateType` | 21 | 日期类型(1=实时，20=近1天，21=近7天，23=近30天) |
 | `--beginDate` | 上周 | 开始日期 |
 | `--endDate` | 上周 | 结束日期 |
 
